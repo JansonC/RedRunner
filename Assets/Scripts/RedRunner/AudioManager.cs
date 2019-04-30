@@ -1,170 +1,145 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace RedRunner
 {
+    public class AudioManager : MonoBehaviour
+    {
+        public static AudioManager Singleton { get; private set; }
+        
+        #region Fields
 
-	public class AudioManager : MonoBehaviour
-	{
+        [Header("Audio Sources")] [Space] [SerializeField]
+        protected AudioSource m_MusicAudioSource;
 
-		#region Singleton
+        [SerializeField] protected AudioSource m_SoundAudioSource;
+        [SerializeField] protected AudioSource m_CoinAudioSource;
+        [SerializeField] protected AudioSource m_DieAudioSource;
+        [SerializeField] protected AudioSource m_MaceSlamAudioSource;
+        [SerializeField] protected AudioSource m_UIAudioSource;
 
-		private static AudioManager m_Singleton;
+        [Header("Music Clips")] [Space] [SerializeField]
+        protected AudioClip m_MusicClip;
 
-		public static AudioManager Singleton {
-			get {
-				return m_Singleton;
-			}
-		}
+        [Header("Sound Clips")] [Space] [SerializeField]
+        protected AudioClip m_CoinSound;
 
-		#endregion
+        [SerializeField] protected AudioClip m_ChestSound;
+        [SerializeField] protected AudioClip m_WaterSplashSound;
+        [SerializeField] protected AudioClip m_SpikeSound;
+        [SerializeField] protected AudioClip[] m_GroundedSounds;
+        [SerializeField] protected AudioClip m_JumpSound;
+        [SerializeField] protected AudioClip[] m_FootstepSounds;
+        [SerializeField] protected AudioClip m_MaceSlamSound;
+        [SerializeField] protected AudioClip m_ButtonClickSound;
 
-		#region Fields
+        #endregion
 
-		[Header ("Audio Sources")]
-		[Space]
-		[SerializeField]
-		protected AudioSource m_MusicAudioSource;
-		[SerializeField]
-		protected AudioSource m_SoundAudioSource;
-		[SerializeField]
-		protected AudioSource m_CoinAudioSource;
-		[SerializeField]
-		protected AudioSource m_DieAudioSource;
-		[SerializeField]
-		protected AudioSource m_MaceSlamAudioSource;
-		[SerializeField]
-		protected AudioSource m_UIAudioSource;
+        #region MonoBehaviour Messages
 
-		[Header ("Music Clips")]
-		[Space]
-		[SerializeField]
-		protected AudioClip m_MusicClip;
+        void Awake()
+        {
+            Singleton = this;
+            PlayMusic();
+        }
 
-		[Header ("Sound Clips")]
-		[Space]
-		[SerializeField]
-		protected AudioClip m_CoinSound;
-		[SerializeField]
-		protected AudioClip m_ChestSound;
-		[SerializeField]
-		protected AudioClip m_WaterSplashSound;
-		[SerializeField]
-		protected AudioClip m_SpikeSound;
-		[SerializeField]
-		protected AudioClip[] m_GroundedSounds;
-		[SerializeField]
-		protected AudioClip m_JumpSound;
-		[SerializeField]
-		protected AudioClip[] m_FootstepSounds;
-		[SerializeField]
-		protected AudioClip m_MaceSlamSound;
-		[SerializeField]
-		protected AudioClip m_ButtonClickSound;
+        #endregion
 
-		#endregion
+        #region Methods
 
-		#region MonoBehaviour Messages
+        public void PlayMusic()
+        {
+            m_MusicAudioSource.clip = m_MusicClip;
+            m_MusicAudioSource.Play();
+        }
 
-		void Awake ()
-		{
-			m_Singleton = this;
-			PlayMusic ();
-		}
+        public void PlaySoundAt(AudioClip clip, Vector3 position, float volume)
+        {
+            AudioSource.PlayClipAtPoint(clip, position, volume);
+        }
 
-		#endregion
+        public void PlaySoundOn(AudioSource audio, AudioClip clip)
+        {
+            audio.clip = clip;
+            audio.Play();
+        }
 
-		#region Methods
+        public void PlayChestSound(Vector3 position)
+        {
+            PlaySoundOn(m_CoinAudioSource, m_ChestSound);
+        }
 
-		public void PlayMusic ()
-		{
-			m_MusicAudioSource.clip = m_MusicClip;
-			m_MusicAudioSource.Play ();
-		}
+        public void PlayCoinSound(Vector3 position)
+        {
+            PlaySoundOn(m_CoinAudioSource, m_CoinSound);
+        }
 
-		public void PlaySoundAt (AudioClip clip, Vector3 position, float volume)
-		{
-			AudioSource.PlayClipAtPoint (clip, position, volume);
-		}
+        public void PlayWaterSplashSound(Vector3 position)
+        {
+            PlaySoundOn(m_DieAudioSource, m_WaterSplashSound);
+        }
 
-		public void PlaySoundOn (AudioSource audio, AudioClip clip)
-		{
-			audio.clip = clip;
-			audio.Play ();
-		}
+        public void PlayMaceSlamSound(Vector3 position)
+        {
+            PlaySoundOn(m_MaceSlamAudioSource, m_MaceSlamSound);
+        }
 
-		public void PlayChestSound (Vector3 position)
-		{
-			PlaySoundOn (m_CoinAudioSource, m_ChestSound);
-		}
+        public void PlaySpikeSound(Vector3 position)
+        {
+            PlaySoundOn(m_DieAudioSource, m_SpikeSound);
+        }
 
-		public void PlayCoinSound (Vector3 position)
-		{
-			PlaySoundOn (m_CoinAudioSource, m_CoinSound);
-		}
+        public void PlayGroundedSound(AudioSource audio)
+        {
+            if (m_GroundedSounds.Length > 0)
+            {
+                PlaySoundOn(audio, GetRandomClip(m_GroundedSounds));
+            }
+        }
 
-		public void PlayWaterSplashSound (Vector3 position)
-		{
-			PlaySoundOn (m_DieAudioSource, m_WaterSplashSound);
-		}
+        public void PlayJumpSound(AudioSource audio)
+        {
+            PlaySoundOn(audio, m_JumpSound);
+        }
 
-		public void PlayMaceSlamSound (Vector3 position)
-		{
-			PlaySoundOn (m_MaceSlamAudioSource, m_MaceSlamSound);
-		}
+        public void PlayFootstepSound(AudioSource audio)
+        {
+            if (m_FootstepSounds.Length > 0)
+            {
+                PlaySoundOn(audio, GetRandomClip(m_FootstepSounds));
+            }
+        }
 
-		public void PlaySpikeSound (Vector3 position)
-		{
-			PlaySoundOn (m_DieAudioSource, m_SpikeSound);
-		}
+        public void PlayFootstepSound(AudioSource audio, ref int index)
+        {
+            if (m_FootstepSounds.Length > 0)
+            {
+                PlaySoundOn(audio, m_FootstepSounds[index]);
+                if (index < m_FootstepSounds.Length - 1)
+                {
+                    index++;
+                }
+                else
+                {
+                    index = 0;
+                }
+            }
+        }
 
-		public void PlayGroundedSound (AudioSource audio)
-		{
-			if (m_GroundedSounds.Length > 0) {
-				PlaySoundOn (audio, GetRandomClip (m_GroundedSounds));
-			}
-		}
+        public void PlayClickSound()
+        {
+            PlaySoundOn(m_UIAudioSource, m_ButtonClickSound);
+        }
 
-		public void PlayJumpSound (AudioSource audio)
-		{
-			PlaySoundOn (audio, m_JumpSound);
-		}
+        public AudioClip GetRandomClip(AudioClip[] clips)
+        {
+            if (clips.Length > 0)
+            {
+                return clips[Random.Range(0, clips.Length)];
+            }
 
-		public void PlayFootstepSound (AudioSource audio)
-		{
-			if (m_FootstepSounds.Length > 0) {
-				PlaySoundOn (audio, GetRandomClip (m_FootstepSounds));
-			}
-		}
+            return null;
+        }
 
-		public void PlayFootstepSound (AudioSource audio, ref int index)
-		{
-			if (m_FootstepSounds.Length > 0) {
-				PlaySoundOn (audio, m_FootstepSounds [index]);
-				if (index < m_FootstepSounds.Length - 1) {
-					index++;
-				} else {
-					index = 0;
-				}
-			}
-		}
-
-		public void PlayClickSound ()
-		{
-			PlaySoundOn (m_UIAudioSource, m_ButtonClickSound);
-		}
-
-		public AudioClip GetRandomClip (AudioClip[] clips)
-		{
-			if (clips.Length > 0) {
-				return clips [Random.Range (0, clips.Length)];
-			}
-			return null;
-		}
-
-		#endregion
-
-	}
-
+        #endregion
+    }
 }

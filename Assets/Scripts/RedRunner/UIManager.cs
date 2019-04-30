@@ -1,8 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using RedRunner.UI;
-using System.Linq;
 
 namespace RedRunner
 {
@@ -17,35 +15,16 @@ namespace RedRunner
 
     public class UIManager : MonoBehaviour
     {
+        public static UIManager Singleton { get; private set; }
 
-        private static UIManager m_Singleton;
-
-        public static UIManager Singleton
-        {
-            get
-            {
-                return m_Singleton;
-            }
-        }
-
-        [SerializeField]
-        private List<UIScreen> m_Screens;
+        [SerializeField] private List<UIScreen> m_Screens;
         private UIScreen m_ActiveScreen;
         private UIWindow m_ActiveWindow;
-        [SerializeField]
-        private Texture2D m_CursorDefaultTexture;
-        [SerializeField]
-        private Texture2D m_CursorClickTexture;
-        [SerializeField]
-        private float m_CursorHideDelay = 1f;
+        [SerializeField] private Texture2D m_CursorDefaultTexture;
+        [SerializeField] private Texture2D m_CursorClickTexture;
+        [SerializeField] private float m_CursorHideDelay = 1f;
 
-        public List<UIScreen> UISCREENS
-        {
-            get
-            {
-                return m_Screens;
-            }
-        }
+        public List<UIScreen> UISCREENS => m_Screens;
 
         public UIScreen GetUIScreen(UIScreenInfo screenInfo)
         {
@@ -54,12 +33,13 @@ namespace RedRunner
 
         void Awake()
         {
-            if (m_Singleton != null)
+            if (Singleton != null)
             {
                 Destroy(gameObject);
                 return;
             }
-            m_Singleton = this;
+
+            Singleton = this;
             Cursor.SetCursor(m_CursorDefaultTexture, Vector2.zero, CursorMode.Auto);
         }
 
@@ -85,7 +65,7 @@ namespace RedRunner
                 //If the pause screen is not open : open it otherwise close it
                 if (!pauseScreen.IsOpen)
                 {
-                    if(m_ActiveScreen == ingameScreen)
+                    if (m_ActiveScreen == ingameScreen)
                     {
                         if (IsAsScreenOpen())
                             CloseAllScreens();
@@ -94,7 +74,7 @@ namespace RedRunner
                         GameManager.Singleton.StopGame();
                     }
                 }
-                else 
+                else
                 {
                     if (m_ActiveScreen == pauseScreen)
                     {
@@ -128,6 +108,7 @@ namespace RedRunner
             {
                 m_ActiveWindow = null;
             }
+
             window.Close();
         }
 
@@ -152,13 +133,16 @@ namespace RedRunner
             {
                 m_ActiveScreen = null;
             }
+
             screen.UpdateScreenStatus(false);
         }
 
         public void CloseAllScreens()
         {
             foreach (var screen in m_Screens)
+            {
                 CloseScreen(screen);
+            }
         }
 
         bool IsAsScreenOpen()
@@ -166,11 +150,12 @@ namespace RedRunner
             foreach (var screen in m_Screens)
             {
                 if (screen.IsOpen)
+                {
                     return true;
+                }
             }
 
             return false;
         }
     }
-
 }

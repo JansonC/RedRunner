@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
-
 using BayatGames.SaveGameFree;
 using BayatGames.SaveGameFree.Serializers;
-
 using RedRunner.Characters;
-using RedRunner.Collectables;
 using RedRunner.TerrainGeneration;
 
 namespace RedRunner
@@ -25,31 +20,15 @@ namespace RedRunner
         public static event ScoreHandler OnScoreChanged;
         public static event AudioEnabledHandler OnAudioEnabled;
 
-        private static GameManager m_Singleton;
+        public static GameManager Singleton { get; private set; }
 
-        public static GameManager Singleton
-        {
-            get
-            {
-                return m_Singleton;
-            }
-        }
-
-        [SerializeField]
-        private Character m_MainCharacter;
-        [SerializeField]
-        [TextArea(3, 30)]
-        private string m_ShareText;
-        [SerializeField]
-        private string m_ShareUrl;
+        [SerializeField] private Character m_MainCharacter;
+        [SerializeField] [TextArea(3, 30)] private string m_ShareText;
+        [SerializeField] private string m_ShareUrl;
         private float m_StartScoreX = 0f;
         private float m_HighScore = 0f;
         private float m_LastScore = 0f;
         private float m_Score = 0f;
-
-        private bool m_GameStarted = false;
-        private bool m_GameRunning = false;
-        private bool m_AudioEnabled = true;
 
         /// <summary>
         /// This is my developed callbacks compoents, because callbacks are so dangerous to use we need something that automate the sub/unsub to functions
@@ -57,77 +36,32 @@ namespace RedRunner
         /// </summary>
         public Property<int> m_Coin = new Property<int>(0);
 
-
         #region Getters
-        public bool gameStarted
-        {
-            get
-            {
-                return m_GameStarted;
-            }
-        }
 
-        public bool gameRunning
-        {
-            get
-            {
-                return m_GameRunning;
-            }
-        }
+        public bool gameStarted { get; private set; } = false;
 
-        public bool audioEnabled
-        {
-            get
-            {
-                return m_AudioEnabled;
-            }
-        }
+        public bool gameRunning { get; private set; } = false;
+
+        public bool audioEnabled { get; private set; } = true;
+
         #endregion
 
         void Awake()
         {
-            if (m_Singleton != null)
+            if (Singleton != null)
             {
                 Destroy(gameObject);
                 return;
             }
+
             SaveGame.Serializer = new SaveGameBinarySerializer();
-            m_Singleton = this;
+            Singleton = this;
             m_Score = 0f;
 
-            if (SaveGame.Exists("coin"))
-            {
-                m_Coin.Value = SaveGame.Load<int>("coin");
-            }
-            else
-            {
-                m_Coin.Value = 0;
-            }
-            if (SaveGame.Exists("audioEnabled"))
-            {
-                SetAudioEnabled(SaveGame.Load<bool>("audioEnabled"));
-            }
-            else
-            {
-                SetAudioEnabled(true);
-            }
-            if (SaveGame.Exists("lastScore"))
-            {
-                m_LastScore = SaveGame.Load<float>("lastScore");
-            }
-            else
-            {
-                m_LastScore = 0f;
-            }
-            if (SaveGame.Exists("highScore"))
-            {
-                m_HighScore = SaveGame.Load<float>("highScore");
-            }
-            else
-            {
-                m_HighScore = 0f;
-            }
-
+            m_Coin.Value = SaveGame.Exists("coin") ? SaveGame.Load<int>("coin") : 0;
+            SetAudioEnabled(!SaveGame.Exists("audioEnabled") || SaveGame.Load<bool>("audioEnabled"));
+            m_LastScore = SaveGame.Exists("lastScore") ? SaveGame.Load<float>("lastScore") : 0f;
+            m_HighScore = SaveGame.Exists("highScore") ? SaveGame.Load<float>("highScore") : 0f;
         }
 
         void UpdateDeathEvent(bool isDead)
@@ -149,10 +83,8 @@ namespace RedRunner
             {
                 m_HighScore = m_Score;
             }
-            if (OnScoreChanged != null)
-            {
-                OnScoreChanged(m_Score, m_HighScore, m_LastScore);
-            }
+
+            OnScoreChanged?.Invoke(m_Score, m_HighScore, m_LastScore);
 
             yield return new WaitForSecondsRealtime(1.5f);
 
@@ -177,15 +109,13 @@ namespace RedRunner
 
         void Update()
         {
-            if (m_GameRunning)
+            if (gameRunning)
             {
-                if (m_MainCharacter.transform.position.x > m_StartScoreX && m_MainCharacter.transform.position.x > m_Score)
+                if (m_MainCharacter.transform.position.x > m_StartScoreX &&
+                    m_MainCharacter.transform.position.x > m_Score)
                 {
                     m_Score = m_MainCharacter.transform.position.x;
-                    if (OnScoreChanged != null)
-                    {
-                        OnScoreChanged(m_Score, m_HighScore, m_LastScore);
-                    }
+                    OnScoreChanged?.Invoke(m_Score, m_HighScore, m_LastScore);
                 }
             }
         }
@@ -203,6 +133,7 @@ namespace RedRunner
             {
                 m_HighScore = m_Score;
             }
+
             SaveGame.Save<int>("coin", m_Coin.Value);
             SaveGame.Save<float>("lastScore", m_Score);
             SaveGame.Save<float>("highScore", m_HighScore);
@@ -215,40 +146,37 @@ namespace RedRunner
 
         public void ToggleAudioEnabled()
         {
-            SetAudioEnabled(!m_AudioEnabled);
+            SetAudioEnabled(!audioEnabled);
         }
 
         public void SetAudioEnabled(bool active)
         {
-            m_AudioEnabled = active;
+            audioEnabled = active;
             AudioListener.volume = active ? 1f : 0f;
-            if (OnAudioEnabled != null)
-            {
-                OnAudioEnabled(active);
-            }
+            OnAudioEnabled?.Invoke(active);
         }
 
         public void StartGame()
         {
-            m_GameStarted = true;
+            gameStarted = true;
             ResumeGame();
         }
 
         public void StopGame()
         {
-            m_GameRunning = false;
+            gameRunning = false;
             Time.timeScale = 0f;
         }
 
         public void ResumeGame()
         {
-            m_GameRunning = true;
+            gameRunning = true;
             Time.timeScale = 1f;
         }
 
         public void EndGame()
         {
-            m_GameStarted = false;
+            gameStarted = false;
             StopGame();
         }
 
@@ -273,10 +201,7 @@ namespace RedRunner
         public void Reset()
         {
             m_Score = 0f;
-            if (OnReset != null)
-            {
-                OnReset();
-            }
+            OnReset?.Invoke();
         }
 
         public void ShareOnTwitter()
@@ -302,9 +227,6 @@ namespace RedRunner
         [System.Serializable]
         public class LoadEvent : UnityEvent
         {
-
         }
-
     }
-
 }

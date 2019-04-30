@@ -1,46 +1,24 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-using RedRunner.Utilities;
+﻿using UnityEngine;
 
 namespace RedRunner.TerrainGeneration
 {
+    public class BackgroundBlock : Block
+    {
+        [SerializeField] protected float m_MinWidth = 1f;
+        [SerializeField] protected float m_MaxWidth = 10f;
 
-	public class BackgroundBlock : Block
-	{
+        public virtual float MinWidth => m_MinWidth;
 
-		[SerializeField]
-		protected float m_MinWidth = 1f;
-		[SerializeField]
-		protected float m_MaxWidth = 10f;
+        public virtual float MaxWidth => m_MaxWidth;
 
-		public virtual float MinWidth {
-			get {
-				return m_MinWidth;
-			}
-		}
+        public override float Width
+        {
+            get => base.Width;
+            set => m_Width = value;
+        }
 
-		public virtual float MaxWidth {
-			get {
-				return m_MaxWidth;
-			}
-		}
-
-		public override float Width {
-			get {
-				return base.Width;
-			}
-			set {
-				m_Width = value;
-			}
-		}
-
-		protected virtual void Start ()
-		{
-			
-		}
-
-	}
-
+        protected virtual void Start()
+        {
+        }
+    }
 }

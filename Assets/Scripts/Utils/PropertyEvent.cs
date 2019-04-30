@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class PropertyEvent
 {
     class Act
@@ -10,7 +9,6 @@ public class PropertyEvent
         public bool CallEvenIfDisabled = false;
         public MonoBehaviour Mb;
         public bool HasMb;
-
         public Action Changed = null;
     }
 
@@ -28,7 +26,7 @@ public class PropertyEvent
 
     public void AddEvent(Action onChanged, MonoBehaviour mb, bool callEvenIfDisabled = false)
     {
-        Callbacks.Add(new Act()
+        Callbacks.Add(new Act
         {
             Mb = mb,
             HasMb = mb != null,
@@ -37,8 +35,15 @@ public class PropertyEvent
         });
     }
 
-    public void Fire() { ChangeValue(); }
-    public void Fire(MonoBehaviour mb) { ChangeValue(mb); }
+    public void Fire()
+    {
+        ChangeValue();
+    }
+
+    public void Fire(MonoBehaviour mb)
+    {
+        ChangeValue(mb);
+    }
 
     void ChangeValue(MonoBehaviour mb = null)
     {
@@ -48,14 +53,18 @@ public class PropertyEvent
             {
                 // Here comes the magic: if monoBehaviour has been already removed we'll have null here
                 if (el.HasMb && el.Mb == null)
+                {
                     return true;
+                }
 
                 if (!el.HasMb || (el.Mb.gameObject.activeInHierarchy && el.Mb.enabled) || el.CallEvenIfDisabled)
+                {
                     if (mb == null || el.Mb == mb)
                     {
-                        if (el.Changed != null)
-                            el.Changed();
+                        el.Changed?.Invoke();
                     }
+                }
+
                 return false;
             }
             catch (Exception ex)
@@ -74,7 +83,6 @@ public class PropertyEvent<T>
         public bool CallEvenIfDisabled = false;
         public MonoBehaviour Mb;
         public bool HasMb;
-
         public Action<TT> Changed = null;
     }
 
@@ -82,7 +90,7 @@ public class PropertyEvent<T>
 
     public void AddEvent(Action<T> onChanged, MonoBehaviour mb, bool callEvenIfDisabled = false)
     {
-        Callbacks.Add(new Act<T>()
+        Callbacks.Add(new Act<T>
         {
             Mb = mb,
             HasMb = mb != null,
@@ -93,7 +101,7 @@ public class PropertyEvent<T>
 
     public void AddEvent(Action<T, T> onChanged, MonoBehaviour mb, bool callEvenIfDisabled = false)
     {
-        Callbacks.Add(new Act<T>()
+        Callbacks.Add(new Act<T>
         {
             Mb = mb,
             HasMb = mb != null,
@@ -119,19 +127,23 @@ public class PropertyEvent<T>
             {
                 // Here comes the magic: if monoBehaviour has been already removed we'll have null here
                 if (el.HasMb && el.Mb == null)
+                {
                     return true;
+                }
 
                 if (!el.HasMb || (el.Mb.gameObject.activeInHierarchy && el.Mb.enabled) || el.CallEvenIfDisabled)
+                {
                     if (mb == null || el.Mb == mb)
                     {
-                        if (el.Changed != null)
-                            el.Changed(value);
+                        el.Changed?.Invoke(value);
                     }
+                }
+
                 return false;
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogException(ex);
+                Debug.LogException(ex);
                 return false;
             }
         });

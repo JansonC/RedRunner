@@ -9,7 +9,6 @@ public class Property<T>
         public bool CallEvenIfDisabled = false;
         public MonoBehaviour Mb;
         public bool HasMb;
-
         public Action<TT> Changed = null;
         public Action<TT, TT> ChangedWithPrev = null;
     }
@@ -18,7 +17,9 @@ public class Property<T>
 
     T currentValue;
 
-    public Property() { }
+    public Property()
+    {
+    }
 
     public Property(T defaultValue)
     {
@@ -27,7 +28,7 @@ public class Property<T>
 
     public void AddEvent(Action<T> onChanged, MonoBehaviour mb, bool callEvenIfDisabled = false)
     {
-        Callbacks.Add(new Act<T>()
+        Callbacks.Add(new Act<T>
         {
             Mb = mb,
             HasMb = mb != null,
@@ -38,7 +39,7 @@ public class Property<T>
 
     public void AddEvent(Action<T, T> onChanged, MonoBehaviour mb, bool callEvenIfDisabled = false)
     {
-        Callbacks.Add(new Act<T>()
+        Callbacks.Add(new Act<T>
         {
             Mb = mb,
             HasMb = mb != null,
@@ -79,14 +80,25 @@ public class Property<T>
         Callbacks.Clear();
     }
 
-    public void Fire() { ChangeValue(currentValue); }
-    public void Fire(MonoBehaviour mb) { ChangeValue(currentValue, mb); }
-    public void Fire(T newValue) { Value = newValue; }
+    public void Fire()
+    {
+        ChangeValue(currentValue);
+    }
+
+    public void Fire(MonoBehaviour mb)
+    {
+        ChangeValue(currentValue, mb);
+    }
+
+    public void Fire(T newValue)
+    {
+        Value = newValue;
+    }
 
     public virtual T Value
     {
-        get { return currentValue; }
-        set { ChangeValue(value); }
+        get => currentValue;
+        set => ChangeValue(value);
     }
 
     void ChangeValue(T value, MonoBehaviour mb = null)
@@ -100,21 +112,24 @@ public class Property<T>
             {
                 // Here comes the magic: if monoBehaviour has been already removed we'll have null here
                 if (el.HasMb && el.Mb == null)
+                {
                     return true;
+                }
 
                 if (!el.HasMb || (el.Mb.gameObject.activeInHierarchy && el.Mb.enabled) || el.CallEvenIfDisabled)
+                {
                     if (mb == null || el.Mb == mb)
                     {
-                        if (el.Changed != null)
-                            el.Changed(currentValue);
-                        if (el.ChangedWithPrev != null)
-                            el.ChangedWithPrev(currentValue, oldValue);
+                        el.Changed?.Invoke(currentValue);
+                        el.ChangedWithPrev?.Invoke(currentValue, oldValue);
                     }
+                }
+
                 return false;
             }
             catch (Exception ex)
             {
-                UnityEngine.Debug.LogException(ex);
+                Debug.LogException(ex);
                 return false;
             }
         });
